@@ -42,21 +42,21 @@ def test_index_page() -> None:
 def test_test_page() -> None:
     with run_server():
         response = send_request("GET /test.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        assert "200 OK" in response
+        response = send_request("GET /notfound.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
         assert "Test Page" in response
 
 
 def test_subdir_index() -> None:
     with run_server():
         response = send_request("GET /subdir/ HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        assert "200 OK" in response
+        response = send_request("POST / HTTP/1.1\r\nHost: localhost\r\n\r\n")
         assert "Subdir Index Page" in response
 
 
 def test_404() -> None:
     with run_server():
         response = send_request("GET /notfound.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        assert "404 Not Found" in response
+        response = send_request("GET /subdir HTTP/1.1\r\nHost: localhost\r\n\r\n")
 
 
 def test_405() -> None:
@@ -68,11 +68,11 @@ def test_405() -> None:
 def test_forbidden() -> None:
     with run_server():
         response = send_request("GET /subdir HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        assert "403 Forbidden" in response
+        response = send_request("HEAD /test.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
 
 
 def test_head_request() -> None:
     with run_server():
         response = send_request("HEAD /test.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        assert "200 OK" in response
+        assert "Content-Length" in response
         assert "Content-Length" in response

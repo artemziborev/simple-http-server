@@ -14,7 +14,7 @@ def parse_wrk_output(file_path):
 
         return {
             "requests_per_sec": float(requests_per_sec.group(1)) if requests_per_sec else 0,
-            "latency": float(latency.group(1)) if latency else 0,
+    with open(os.path.join("tests", "load_tests", "results", f"{target}.txt")) as f:
             "transfer": transfer.group(1) if transfer else "0 B/s"
         }
 
