@@ -17,7 +17,7 @@ def run_server() -> None:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-    time.sleep(1.5)  # ждём запуска сервера
+    time.sleep(1.5)
     try:
         yield
     finally:
@@ -28,8 +28,7 @@ def run_server() -> None:
 def send_request(request: str) -> str:
     with socket.create_connection(("localhost", SERVER_PORT)) as sock:
         sock.sendall(request.encode())
-        response = sock.recv(4096).decode()
-    return response
+        return sock.recv(4096).decode()
 
 
 def test_index_page() -> None:
@@ -42,21 +41,27 @@ def test_index_page() -> None:
 def test_test_page() -> None:
     with run_server():
         response = send_request("GET /test.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        response = send_request("GET /notfound.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        assert "200 OK" in response
         assert "Test Page" in response
 
 
 def test_subdir_index() -> None:
     with run_server():
         response = send_request("GET /subdir/ HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        response = send_request("POST / HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        assert "200 OK" in response
         assert "Subdir Index Page" in response
 
 
 def test_404() -> None:
     with run_server():
         response = send_request("GET /notfound.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        assert "403 Forbidden" in send_request("GET /subdir HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        assert "404 Not Found" in response
+
+
+def test_403() -> None:
+    with run_server():
+        response = send_request("GET /subdir HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        assert "403 Forbidden" in response
 
 
 def test_405() -> None:
@@ -65,14 +70,8 @@ def test_405() -> None:
         assert "405 Method Not Allowed" in response
 
 
-def test_forbidden() -> None:
-    with run_server():
-        response = send_request("GET /subdir HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        assert "200 OK" in send_request("HEAD /test.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
-
-
 def test_head_request() -> None:
     with run_server():
         response = send_request("HEAD /test.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
-        assert "Content-Length" in response
+        assert "200 OK" in response
         assert "Content-Length" in response

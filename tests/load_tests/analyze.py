@@ -2,7 +2,7 @@ import os
 import re
 import matplotlib.pyplot as plt
 
-RESULTS_DIR = "load_tests/results"
+RESULTS_DIR = "tests/load_tests/results"
 
 
 def parse_wrk_output(file_path):
@@ -14,7 +14,7 @@ def parse_wrk_output(file_path):
 
         return {
             "requests_per_sec": float(requests_per_sec.group(1)) if requests_per_sec else 0,
-    with open(os.path.join("tests", "load_tests", "results", f"{target}.txt"), "r") as f:
+            "latency": float(latency.group(1)) if latency else 0,
             "transfer": transfer.group(1) if transfer else "0 B/s"
         }
 
@@ -39,12 +39,15 @@ def plot_results(results):
     ax2.tick_params(axis="y", labelcolor=color)
 
     plt.title("Load Test Results")
+    plt.tight_layout()
     plt.show()
 
 
 def main():
     results = {}
     for file_name in os.listdir(RESULTS_DIR):
+        if not file_name.endswith(".txt"):
+            continue
         endpoint = file_name.replace(".txt", "")
         file_path = os.path.join(RESULTS_DIR, file_name)
         results[endpoint] = parse_wrk_output(file_path)
